@@ -1,0 +1,83 @@
+$primary: #0b4a82;
+$secondary: #f7f7f9;
+$body: #0f172a;
+$card: #ffffff;
+
+:root {
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+  color: $body;
+  background: $secondary;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+.container {
+  width: min(1100px, 100% - 24px);
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.card {
+  background: $card;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  box-shadow: 0 7px 25px rgba(15, 23, 42, 0.05);
+  padding: 1rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.66rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+}
+
+.button {
+  background: $primary;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.73rem 1.2rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.button.danger {
+  background: #c43434;
+}
+
+.error {
+  color: #c43434;
+  font-size: 0.85rem;
+  margin-bottom: 0.7rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

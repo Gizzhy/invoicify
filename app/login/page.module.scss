@@ -1,0 +1,278 @@
+.pageWrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  background: linear-gradient(180deg, #eef3fb 0%, #f7f8fc 100%);
+}
+
+.leftPanel {
+  flex: 1.1;
+  min-width: 320px;
+  border-radius: 32px;
+  padding: 3rem;
+  background: linear-gradient(180deg, #061b33 0%, #0c2c5d 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 32px 80px rgba(2, 23, 63, 0.18);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.brandTitle {
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.featureCards {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.featureCard {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.15rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.featureIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  display: grid;
+  place-items: center;
+}
+
+.featureDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.featureTitle {
+  font-size: 0.96rem;
+  font-weight: 700;
+  margin-bottom: 0.18rem;
+}
+
+.featureSubtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.headline {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  line-height: 1.02;
+  font-weight: 800;
+  max-width: 520px;
+  margin-bottom: 1.4rem;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 520px;
+  margin-bottom: 2rem;
+}
+
+.leftFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.9rem;
+}
+
+.linkText {
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+}
+
+.rightPanel {
+  flex: 0.95;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.formCard {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+}
+
+.formHeader {
+  margin-bottom: 2rem;
+}
+
+.formHeader h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.formHeader p {
+  color: #64748b;
+  line-height: 1.75;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.input {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.error {
+  color: #c43434;
+  font-size: 0.92rem;
+  margin-bottom: 1rem;
+}
+
+.button {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.15rem;
+  margin-top: 0.5rem;
+  border-radius: 18px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0 1.5rem;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.bottomText {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.bottomText a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+@media (max-width: 1040px) {
+  .pageWrap {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .pageWrap {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .leftPanel,
+  .rightPanel {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .leftPanel {
+    padding: 2rem;
+  }
+
+  .formCard {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .featureCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .brand {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headline {
+    font-size: 2.25rem;
+  }
+}
