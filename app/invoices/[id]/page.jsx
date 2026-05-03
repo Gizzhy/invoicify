@@ -32,11 +32,13 @@ export default function InvoiceDetail() {
   async function fetchInvoice() {
     try {
       const inv = await getInvoice(user.uid, params.id);
-      setInvoice(inv);
-      // Fetch bank account details
+      // Fetch bank account details using bankAccountId or selectedBankAccount.
       const banks = await getBankAccounts(user.uid);
-      const bank = banks.find((b) => b.id === inv.selectedBankAccount);
+      const bank = banks.find(
+        (b) => b.id === inv.bankAccountId || b.id === inv.selectedBankAccount,
+      );
       setBankAccount(bank);
+      setInvoice({ ...inv, bankAccount: bank });
       // Fetch vendor profile
       const prof = await getVendorProfile(user.uid);
       setProfile(prof);
