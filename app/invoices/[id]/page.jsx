@@ -6,7 +6,11 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { formatCurrency } from "../../../lib/utils";
 import { getInvoice } from "../../../services/invoiceService";
-import { getBankAccounts } from "../../../services/vendorService";
+import {
+  getBankAccounts,
+  getVendorProfile,
+} from "../../../services/vendorService";
+import { generateInvoicePdf } from "../../../lib/generateInvoicePdf";
 
 const currencySymbols = { NGN: "₦", GBP: "£", USD: "$", EUR: "€" };
 
@@ -16,6 +20,7 @@ export default function InvoiceDetail() {
   const params = useParams();
   const [invoice, setInvoice] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/login");
@@ -32,10 +37,19 @@ export default function InvoiceDetail() {
       const banks = await getBankAccounts(user.uid);
       const bank = banks.find((b) => b.id === inv.selectedBankAccount);
       setBankAccount(bank);
+      // Fetch vendor profile
+      const prof = await getVendorProfile(user.uid);
+      setProfile(prof);
     } catch (error) {
       console.error("Error fetching invoice:", error);
     }
   }
+
+  const handleDownloadPdf = () => {
+    if (invoice && profile) {
+      generateInvoicePdf(invoice, profile);
+    }
+  };
 
   if (loading || !invoice)
     return <div className="container card">Loading...</div>;
@@ -52,6 +66,13 @@ export default function InvoiceDetail() {
         >
           <h1>Invoice {invoice.invoiceNumber}</h1>
           <div>
+            <button
+              className="button"
+              onClick={handleDownloadPdf}
+              style={{ marginRight: "0.5rem" }}
+            >
+              Download PDF
+            </button>
             <Link href="/invoices">
               <button className="button">Back</button>
             </Link>
@@ -91,7 +112,7 @@ export default function InvoiceDetail() {
           <tbody>
             {invoice.items.map((item, idx) => (
               <tr key={idx} style={{ borderBottom: "1px solid #e2e8f0" }}>
-                <td>{item.itemName}</td>
+                <td>{item.name}</td>
                 <td>{item.quantity}</td>
                 <td>
                   {currencySymbols[invoice.currency]}
