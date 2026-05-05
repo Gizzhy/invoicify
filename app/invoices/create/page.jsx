@@ -146,13 +146,13 @@ export default function CreateInvoicePage() {
 
             <div className={styles.gridTwo}>
               <div className={styles.formGroup}>
-                <label>Client / Business Name</label>
+                <label>Client Name</label>
                 <input
                   value={form.clientName}
                   onChange={(e) =>
                     setForm({ ...form, clientName: e.target.value })
                   }
-                  placeholder="e.g. Acme Corp Inc."
+                  placeholder="e.g. Alice Johnson"
                 />
               </div>
 
@@ -163,7 +163,7 @@ export default function CreateInvoicePage() {
                   onChange={(e) =>
                     setForm({ ...form, clientPhone: e.target.value })
                   }
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+23470123456789"
                 />
               </div>
             </div>
@@ -254,8 +254,8 @@ export default function CreateInvoicePage() {
 
                   <input
                     type="number"
-                    min="0"
-                    step="0.01"
+                    min="1"
+                    step="1"
                     value={item.price}
                     onChange={(e) => updateItem(idx, "price", e.target.value)}
                   />
