@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Banknote,
+  CalendarDays,
+  Download,
+  FileText,
+  Phone,
+  UserRound,
+} from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-import { useParams } from "next/navigation";
-import Link from "next/link";
 import { formatCurrency, formatDate } from "../../../lib/utils";
 import {
   getInvoice,
@@ -15,43 +23,40 @@ import {
 } from "../../../services/vendorService";
 import { generateInvoicePdf } from "../../../lib/generateInvoicePdf";
 import AppLayout from "../../../components/AppLayout";
+import styles from "./id.module.scss";
 
 export default function InvoiceDetail() {
   const { user } = useAuth();
   const params = useParams();
+  const router = useRouter();
+
   const [invoice, setInvoice] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    if (user && params.id) {
-      fetchInvoice();
-    }
+    if (user && params.id) fetchInvoice();
   }, [user, params.id]);
 
   async function fetchInvoice() {
     try {
       const inv = await getInvoice(user.uid, params.id);
-      // Fetch bank account details using bankAccountId or selectedBankAccount.
       const banks = await getBankAccounts(user.uid);
       const bank = banks.find(
         (b) => b.id === inv.bankAccountId || b.id === inv.selectedBankAccount,
       );
+
       setBankAccount(bank);
       setInvoice({ ...inv, bankAccount: bank });
-      // Fetch vendor profile
-      const prof = await getVendorProfile(user.uid);
-      setProfile(prof);
+      setProfile(await getVendorProfile(user.uid));
     } catch (error) {
       console.error("Error fetching invoice:", error);
     }
   }
 
-  const handleDownloadPdf = () => {
-    if (invoice && profile) {
-      generateInvoicePdf(invoice, profile);
-    }
-  };
+  function handleDownloadPdf() {
+    if (invoice && profile) generateInvoicePdf(invoice, profile);
+  }
 
   async function handleStatusChange(newStatus) {
     try {
@@ -62,124 +67,182 @@ export default function InvoiceDetail() {
     }
   }
 
-  if (!invoice)
+  if (!invoice) {
     return (
       <AppLayout>
-        <div className="container card">Loading...</div>
+        <div className={styles.loading}>Loading invoice...</div>
       </AppLayout>
     );
+  }
+
+  const status = invoice.status || "pending";
 
   return (
     <AppLayout>
-      <div className="container" style={{ marginTop: "0" }}>
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <h1>Invoice {invoice.invoiceNumber}</h1>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  marginTop: "0.5rem",
-                }}
+      <main className={styles.page}>
+        <button
+          type="button"
+          className={styles.backLink}
+          onClick={() => router.push("/invoices")}
+        >
+          <ArrowLeft size={18} />
+          Back to invoices
+        </button>
+
+        <section className={styles.heroCard}>
+          <div>
+            <div className={styles.kicker}>
+              <FileText size={18} />
+              Invoice Details
+            </div>
+
+            <h1>{invoice.invoiceNumber}</h1>
+
+            <div className={styles.statusRow}>
+              <span className={`${styles.statusPill} ${styles[status]}`}>
+                {status}
+              </span>
+
+              <select
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className={styles.statusSelect}
               >
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "0.25rem 0.75rem",
-                    borderRadius: "9999px",
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    textTransform: "capitalize",
-                    background:
-                      invoice.status === "paid" ? "#d1fae5" : "#fef3c7",
-                    color: invoice.status === "paid" ? "#065f46" : "#d97706",
-                  }}
-                >
-                  {invoice.status || "pending"}
-                </span>
-                <select
-                  value={invoice.status || "pending"}
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  style={{
-                    padding: "0.25rem 0.5rem",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "0.25rem",
-                    background: "white",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="paid">Paid</option>
-                </select>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={handleDownloadPdf}
+            >
+              <Download size={18} />
+              Download PDF
+            </button>
+
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => router.push("/invoices")}
+            >
+              Back
+            </button>
+          </div>
+        </section>
+
+        <section className={styles.summaryGrid}>
+          <div className={styles.infoCard}>
+            <div className={styles.iconWrap}>
+              <UserRound size={20} />
+            </div>
+            <span>Client</span>
+            <strong>{invoice.clientName}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <div className={styles.iconWrap}>
+              <Phone size={20} />
+            </div>
+            <span>Phone</span>
+            <strong>{invoice.clientPhone}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <div className={styles.iconWrap}>
+              <CalendarDays size={20} />
+            </div>
+            <span>Date</span>
+            <strong>{formatDate(invoice.createdAt)}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <div className={styles.iconWrap}>
+              <Banknote size={20} />
+            </div>
+            <span>Total</span>
+            <strong>{formatCurrency(invoice.total, invoice.currency)}</strong>
+          </div>
+        </section>
+
+        <section className={styles.contentGrid}>
+          <div className={styles.tableCard}>
+            <div className={styles.sectionHeader}>
+              <h2>Order Items</h2>
+              <p>{invoice.items?.length || 0} item(s)</p>
+            </div>
+
+            <div className={styles.tableWrap}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.items.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>{item.name}</td>
+                      <td>{item.quantity}</td>
+                      <td>{formatCurrency(item.price, invoice.currency)}</td>
+                      <td>
+                        {formatCurrency(
+                          item.quantity * item.price,
+                          invoice.currency,
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className={styles.totalBox}>
+              <span>Invoice Total</span>
+              <strong>{formatCurrency(invoice.total, invoice.currency)}</strong>
+            </div>
+          </div>
+
+          <aside className={styles.sideCard}>
+            <h2>Payment Details</h2>
+
+            {bankAccount ? (
+              <div className={styles.bankDetails}>
+                <div>
+                  <span>Bank Name</span>
+                  <strong>{bankAccount.bankName}</strong>
+                </div>
+
+                <div>
+                  <span>Account Name</span>
+                  <strong>{bankAccount.accountName}</strong>
+                </div>
+
+                <div>
+                  <span>Account Number</span>
+                  <strong>{bankAccount.accountNumber}</strong>
+                </div>
               </div>
-            </div>
-            <div>
-              <button
-                className="button"
-                onClick={handleDownloadPdf}
-                style={{ marginRight: "0.5rem" }}
-              >
-                Download PDF
-              </button>
-              <Link href="/invoices">
-                <button className="button">Back</button>
-              </Link>
-            </div>
-          </div>
-          <div style={{ marginTop: "1rem" }}>
-            <p>Client: {invoice.clientName}</p>
-            <p>Client Phone: {invoice.clientPhone}</p>
-            <p>Date: {formatDate(invoice.createdAt)}</p>
-            <p>Currency: {invoice.currency}</p>
-            {bankAccount && (
-              <p>
-                Bank: {bankAccount.bankName} {bankAccount.accountNumber} (
-                {bankAccount.accountName})
-              </p>
+            ) : (
+              <p className={styles.muted}>No bank account attached.</p>
             )}
-            <p>Total: {formatCurrency(invoice.total, invoice.currency)}</p>
-          </div>
-          <table
-            style={{
-              width: "100%",
-              marginTop: "1rem",
-              borderCollapse: "collapse",
-            }}
-          >
-            <thead>
-              <tr style={{ borderBottom: "1px solid #cbd5e1" }}>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoice.items.map((item, idx) => (
-                <tr key={idx} style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  <td>{item.name}</td>
-                  <td>{item.quantity}</td>
-                  <td>{formatCurrency(item.price, invoice.currency)}</td>
-                  <td>
-                    {formatCurrency(
-                      item.quantity * item.price,
-                      invoice.currency,
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+
+            <div className={styles.noteBox}>
+              <strong>Status note</strong>
+              <p>
+                Mark this invoice as paid once the client payment has been
+                confirmed.
+              </p>
+            </div>
+          </aside>
+        </section>
+      </main>
     </AppLayout>
   );
 }
