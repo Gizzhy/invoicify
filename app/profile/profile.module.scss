@@ -1,0 +1,178 @@
+.page {
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.65rem; // as requested
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: #64748b;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+}
+
+/* CARD */
+.card {
+  background: #fff;
+  padding: 1.75rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  max-width: 800px;
+}
+
+/* LOGO */
+.logoSection {
+  margin-bottom: 1.5rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.logoUpload {
+  width: 160px;
+  height: 120px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  background: #f8fafc;
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 0 10px;
+  }
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.full {
+  margin-top: 1rem;
+}
+
+
+
+.card {
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #0f172a;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
+    background: #f8fafc;
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+  }
+
+  textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+}
+
+
+/* ERROR */
+.error {
+  margin-top: 1rem;
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+/* ACTIONS */
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+
+  button {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.3rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.2rem;
+  }
+
+  .card {
+    padding: 1.3rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .logoUpload {
+    width: 100%;
+    height: 120px;
+  }
+
+  .actions {
+    button {
+      width: 100%;
+    }
+  }
+}

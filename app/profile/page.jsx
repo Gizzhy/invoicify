@@ -6,14 +6,13 @@ import {
   getVendorProfile,
   updateVendorProfile,
   uploadLogo,
-  getBankAccounts,
-  addBankAccount,
-  deleteBankAccount,
 } from "../../services/vendorService";
 import AppLayout from "../../components/AppLayout";
+import styles from "./profile.module.scss";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+
   const [profile, setProfile] = useState({
     brandName: "",
     brandDesc: "",
@@ -21,35 +20,26 @@ export default function ProfilePage() {
     phone: "",
     logoUrl: "",
   });
-  const [accounts, setAccounts] = useState([]);
-  const [bankForm, setBankForm] = useState({
-    accountName: "",
-    accountNumber: "",
-    bankName: "",
-  });
+
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      syncData();
-    }
+    if (user) fetchProfile();
   }, [user]);
 
-  async function syncData() {
+  async function fetchProfile() {
     try {
-      const profileData = await getVendorProfile(user.uid);
+      const data = await getVendorProfile(user.uid);
       setProfile({
-        brandName: profileData.brandName || "",
-        brandDesc: profileData.brandDesc || "",
-        address: profileData.address || "",
-        phone: profileData.phone || "",
-        logoUrl: profileData.logoUrl || "",
+        brandName: data.brandName || "",
+        brandDesc: data.brandDesc || "",
+        address: data.address || "",
+        phone: data.phone || "",
+        logoUrl: data.logoUrl || "",
       });
-      const accountsData = await getBankAccounts(user.uid);
-      setAccounts(accountsData);
-    } catch (error) {
-      console.error("Error syncing data:", error);
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -59,9 +49,8 @@ export default function ProfilePage() {
     try {
       await updateVendorProfile(user.uid, profile);
       setError("");
-      alert("Profile updated");
-    } catch (error) {
-      setError("Failed to update");
+    } catch (err) {
+      setError("Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -71,179 +60,96 @@ export default function ProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!user?.uid) {
-      setError("User not logged in");
-      return;
-    }
-
     try {
-      const logoUrl = await uploadLogo(user.uid, file);
-      setProfile((prev) => ({ ...prev, logoUrl }));
-    } catch (error) {
-      console.error("Logo upload error:", error);
-      setError(error.message || "Failed to upload logo");
-    }
-  }
-
-  async function addBankAccountHandler(e) {
-    e.preventDefault();
-    if (
-      !bankForm.accountName ||
-      !bankForm.accountNumber ||
-      !bankForm.bankName
-    ) {
-      setError("All bank fields are required");
-      return;
-    }
-    try {
-      await addBankAccount(user.uid, bankForm);
-      setError("");
-      setBankForm({ accountName: "", accountNumber: "", bankName: "" });
-      await syncData();
-    } catch (error) {
-      setError("Could not add");
-    }
-  }
-
-  async function deleteBank(id) {
-    try {
-      await deleteBankAccount(user.uid, id);
-      await syncData();
-    } catch (error) {
-      console.error("Error deleting bank account:", error);
+      const url = await uploadLogo(user.uid, file);
+      setProfile((prev) => ({ ...prev, logoUrl: url }));
+    } catch (err) {
+      setError("Logo upload failed");
     }
   }
 
   return (
     <AppLayout>
-      <div className="container" style={{ marginTop: "0" }}>
-        <div className="card" style={{ marginBottom: "1rem" }}>
-          <h1>Profile</h1>
-          <form onSubmit={updateProfile}>
-            <label className="label">Brand Name</label>
-            <input
-              className="input"
-              value={profile.brandName}
-              onChange={(e) =>
-                setProfile({ ...profile, brandName: e.target.value })
-              }
-            />
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <h1>Brand Profile Settings</h1>
+          <p>
+            Manage your brand identity and invoice appearance. These details
+            will reflect on your generated invoices.
+          </p>
+        </div>
 
-            <label className="label">Brand Description</label>
+        <form onSubmit={updateProfile} className={styles.card}>
+          {/* LOGO */}
+          <div className={styles.logoSection}>
+            <label>Company Logo</label>
+
+            <div className={styles.logoUpload}>
+              <input type="file" accept="image/*" onChange={onLogoChange} />
+
+              {profile.logoUrl ? (
+                <img src={profile.logoUrl} alt="logo" />
+              ) : (
+                <span>Click to upload or drag image</span>
+              )}
+            </div>
+          </div>
+
+          {/* GRID */}
+          <div className={styles.grid}>
+            <div>
+              <label>Brand Name</label>
+              <input
+                value={profile.brandName}
+                onChange={(e) =>
+                  setProfile({ ...profile, brandName: e.target.value })
+                }
+                placeholder="Your company name"
+              />
+            </div>
+
+            <div>
+              <label>Phone Number</label>
+              <input
+                value={profile.phone}
+                onChange={(e) =>
+                  setProfile({ ...profile, phone: e.target.value })
+                }
+                placeholder="+234..."
+              />
+            </div>
+          </div>
+
+          <div className={styles.full}>
+            <label>Brand Description / Tagline</label>
             <textarea
-              className="textarea"
               value={profile.brandDesc}
               onChange={(e) =>
                 setProfile({ ...profile, brandDesc: e.target.value })
               }
+              placeholder="Short description for invoices"
             />
+          </div>
 
-            <label className="label">Address</label>
+          <div className={styles.full}>
+            <label>Business Address</label>
             <textarea
-              className="textarea"
               value={profile.address}
               onChange={(e) =>
                 setProfile({ ...profile, address: e.target.value })
               }
+              placeholder="Your business address"
             />
+          </div>
 
-            <label className="label">Phone</label>
-            <input
-              className="input"
-              value={profile.phone}
-              onChange={(e) =>
-                setProfile({ ...profile, phone: e.target.value })
-              }
-            />
+          {error && <div className={styles.error}>{error}</div>}
 
-            <label className="label">Brand Logo</label>
-            <input type="file" accept="image/*" onChange={onLogoChange} />
-            {profile.logoUrl && (
-              <img
-                src={profile.logoUrl}
-                alt="logo"
-                style={{
-                  width: "120px",
-                  marginTop: "1rem",
-                  borderRadius: "10px",
-                }}
-              />
-            )}
-
-            {error && <div className="error">{error}</div>}
-
-            <button className="button" type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Profile"}
+          <div className={styles.actions}>
+            <button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
             </button>
-          </form>
-        </div>
-
-        <div className="card">
-          <h2>Bank Accounts</h2>
-          <form
-            onSubmit={addBankAccountHandler}
-            style={{ marginBottom: "1rem" }}
-          >
-            <label className="label">Account Name</label>
-            <input
-              className="input"
-              value={bankForm.accountName}
-              onChange={(e) =>
-                setBankForm({ ...bankForm, accountName: e.target.value })
-              }
-            />
-
-            <label className="label">Account Number</label>
-            <input
-              className="input"
-              value={bankForm.accountNumber}
-              onChange={(e) =>
-                setBankForm({ ...bankForm, accountNumber: e.target.value })
-              }
-            />
-
-            <label className="label">Bank Name</label>
-            <input
-              className="input"
-              value={bankForm.bankName}
-              onChange={(e) =>
-                setBankForm({ ...bankForm, bankName: e.target.value })
-              }
-            />
-
-            <button className="button" type="submit">
-              Add Bank Account
-            </button>
-          </form>
-
-          <h3>Saved Accounts</h3>
-          {accounts.length === 0 ? (
-            <p>No saved accounts yet.</p>
-          ) : (
-            <ul>
-              {accounts.map((acc) => (
-                <li
-                  key={acc.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: "0.6rem",
-                  }}
-                >
-                  <span>
-                    {acc.bankName} - {acc.accountNumber} ({acc.accountName})
-                  </span>
-                  <button
-                    className="button danger"
-                    onClick={() => deleteBank(acc.id)}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          </div>
+        </form>
       </div>
     </AppLayout>
   );
