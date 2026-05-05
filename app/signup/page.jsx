@@ -42,7 +42,7 @@ export default function SignupPage() {
           <div className={styles.logo}>
             <FileText size={22} />
           </div>
-          <span>VendorInvoice</span>
+          <span>Invoicify</span>
         </div>
 
         <div className={styles.hero}>

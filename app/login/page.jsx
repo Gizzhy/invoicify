@@ -46,7 +46,7 @@ export default function LoginPage() {
             <div className={styles.logo}>
               <WalletCards size={24} />
             </div>
-            <span>VendorInvoice</span>
+            <span>Invoicify</span>
           </div>
 
           <div className={styles.featureCards}>
@@ -81,7 +81,7 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.leftFooter}>
-          <span>© 2026 VendorInvoice Inc.</span>
+          <span>© 2026 Invoicify Inc.</span>
           <div>
             <Link href="/">Privacy</Link>
             <Link href="/">Terms</Link>

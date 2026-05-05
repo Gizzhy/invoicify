@@ -39,8 +39,7 @@ export default function AppSidebar() {
   return (
     <div className={styles.sidebar}>
       <div className={styles.brand}>
-        <h2>VendorInvoice</h2>
-        <p>Pro Plan</p>
+        <h2>Invoicify</h2>
       </div>
       <nav className={styles.nav}>
         {navItems.map(({ href, label, icon: Icon }) => (
