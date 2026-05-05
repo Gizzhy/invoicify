@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -110,7 +111,7 @@ export default function LoginPage() {
             <div className={styles.formGroup}>
               <input
                 className={`${styles.input} ${styles.passwordInput}`}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Password"
@@ -119,7 +120,8 @@ export default function LoginPage() {
               <button
                 className={styles.eyeButton}
                 type="button"
-                aria-label="Show password"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((prev) => !prev)}
               >
                 <Eye size={20} />
               </button>

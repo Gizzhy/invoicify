@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [form, setForm] = useState({ email: "", password: "", name: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -103,12 +104,17 @@ export default function SignupPage() {
             <div className={styles.passwordWrap}>
               <input
                 className={styles.input}
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Password"
               />
-              <button type="button" className={styles.eyeButton}>
+              <button
+                type="button"
+                className={styles.eyeButton}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
                 <Eye size={18} />
               </button>
             </div>
