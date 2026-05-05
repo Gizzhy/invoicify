@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "../services/authService";
+import Image from "next/image";
 import {
   LayoutDashboard,
   FileText,
@@ -12,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./AppSidebar.module.scss";
+import icon from "../app/assets/logo.png";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -37,7 +39,7 @@ export default function AppSidebar({ isOpen, onClose }) {
     <aside className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}>
       <div className={styles.top}>
         <div className={styles.brand}>
-          <div className={styles.logo}>I</div>
+          <Image src={icon} alt="Invoicify Logo" className={styles.logo} />
           <div>
             <h2>Invoicify</h2>
           </div>
