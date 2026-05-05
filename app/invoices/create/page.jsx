@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { calculateTotal, calculateRowAmount } from "../../../lib/utils";
 import { getBankAccounts } from "../../../services/vendorService";
 import { createInvoice } from "../../../services/invoiceService";
+import AppLayout from "../../../components/AppLayout";
 
 const currencies = [
   { value: "NGN", label: "Naira (₦)" },
@@ -16,8 +16,7 @@ const currencies = [
 ];
 
 export default function CreateInvoicePage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [banks, setBanks] = useState([]);
   const [form, setForm] = useState({
     clientName: "",
@@ -30,11 +29,10 @@ export default function CreateInvoicePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/login");
     if (user) {
       fetchBanks();
     }
-  }, [user, loading, router]);
+  }, [user]);
 
   async function fetchBanks() {
     try {
@@ -90,125 +88,135 @@ export default function CreateInvoicePage() {
     }
   };
 
-  if (loading) return <div className="container card">Loading...</div>;
-
   return (
-    <div className="container" style={{ marginTop: "2rem" }}>
-      <div className="card">
-        <h1>Create New Invoice</h1>
-        <Link href="/invoices">
-          <button className="button" style={{ marginBottom: "1rem" }}>
-            Back to invoices
-          </button>
-        </Link>
-        <form onSubmit={submit}>
-          <label className="label">Client Name</label>
-          <input
-            className="input"
-            value={form.clientName}
-            onChange={(e) => setForm({ ...form, clientName: e.target.value })}
-          />
-          <label className="label">Client Phone</label>
-          <input
-            className="input"
-            value={form.clientPhone}
-            onChange={(e) => setForm({ ...form, clientPhone: e.target.value })}
-          />
+    <AppLayout>
+      <div className="container" style={{ marginTop: "0" }}>
+        <div className="card">
+          <h1>Create New Invoice</h1>
+          <Link href="/invoices">
+            <button className="button" style={{ marginBottom: "1rem" }}>
+              Back to invoices
+            </button>
+          </Link>
+          <form onSubmit={submit}>
+            <label className="label">Client Name</label>
+            <input
+              className="input"
+              value={form.clientName}
+              onChange={(e) => setForm({ ...form, clientName: e.target.value })}
+            />
+            <label className="label">Client Phone</label>
+            <input
+              className="input"
+              value={form.clientPhone}
+              onChange={(e) =>
+                setForm({ ...form, clientPhone: e.target.value })
+              }
+            />
 
-          <div className="grid grid-2">
-            <div>
-              <label className="label">Currency</label>
-              <select
-                className="select"
-                value={form.currency}
-                onChange={(e) => setForm({ ...form, currency: e.target.value })}
-              >
-                {currencies.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-2">
+              <div>
+                <label className="label">Currency</label>
+                <select
+                  className="select"
+                  value={form.currency}
+                  onChange={(e) =>
+                    setForm({ ...form, currency: e.target.value })
+                  }
+                >
+                  {currencies.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">Bank Account</label>
+                <select
+                  className="select"
+                  value={form.bankAccountId}
+                  onChange={(e) =>
+                    setForm({ ...form, bankAccountId: e.target.value })
+                  }
+                >
+                  <option value="">Select account</option>
+                  {banks.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.bankName} - {b.accountNumber}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="label">Bank Account</label>
-              <select
-                className="select"
-                value={form.bankAccountId}
-                onChange={(e) =>
-                  setForm({ ...form, bankAccountId: e.target.value })
-                }
+
+            <h3>Order Items</h3>
+            {form.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="grid"
+                style={{ marginBottom: "0.5rem" }}
               >
-                <option value="">Select account</option>
-                {banks.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.bankName} - {b.accountNumber}
-                  </option>
-                ))}
-              </select>
+                <input
+                  className="input"
+                  placeholder="Item name"
+                  value={item.name}
+                  onChange={(e) => updateItem(idx, "name", e.target.value)}
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min="1"
+                  placeholder="Quantity"
+                  value={item.quantity}
+                  onChange={(e) => updateItem(idx, "quantity", e.target.value)}
+                />
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Price"
+                  value={item.price}
+                  onChange={(e) => updateItem(idx, "price", e.target.value)}
+                />
+                <input
+                  className="input"
+                  readOnly
+                  value={calculateRowAmount(item.quantity, item.price).toFixed(
+                    2,
+                  )}
+                />
+                <button
+                  type="button"
+                  className="button danger"
+                  onClick={() => removeRow(idx)}
+                  style={{ width: "100px" }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+            <button type="button" className="button" onClick={addRow}>
+              Add Item
+            </button>
+            <div style={{ marginTop: "1rem", fontWeight: 700 }}>
+              Total: {form.currency} {total.toFixed(2)}
             </div>
-          </div>
 
-          <h3>Order Items</h3>
-          {form.items.map((item, idx) => (
-            <div key={idx} className="grid" style={{ marginBottom: "0.5rem" }}>
-              <input
-                className="input"
-                placeholder="Item name"
-                value={item.name}
-                onChange={(e) => updateItem(idx, "name", e.target.value)}
-              />
-              <input
-                className="input"
-                type="number"
-                min="1"
-                placeholder="Quantity"
-                value={item.quantity}
-                onChange={(e) => updateItem(idx, "quantity", e.target.value)}
-              />
-              <input
-                className="input"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Price"
-                value={item.price}
-                onChange={(e) => updateItem(idx, "price", e.target.value)}
-              />
-              <input
-                className="input"
-                readOnly
-                value={calculateRowAmount(item.quantity, item.price).toFixed(2)}
-              />
-              <button
-                type="button"
-                className="button danger"
-                onClick={() => removeRow(idx)}
-                style={{ width: "100px" }}
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-          <button type="button" className="button" onClick={addRow}>
-            Add Item
-          </button>
-          <div style={{ marginTop: "1rem", fontWeight: 700 }}>
-            Total: {form.currency} {total.toFixed(2)}
-          </div>
+            {error && <div className="error">{error}</div>}
 
-          {error && <div className="error">{error}</div>}
-
-          <button
-            type="submit"
-            className="button"
-            style={{ marginTop: "1rem" }}
-            disabled={submitting}
-          >
-            {submitting ? "Generating..." : "Generate Invoice"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="button"
+              style={{ marginTop: "1rem" }}
+              disabled={submitting}
+            >
+              {submitting ? "Generating..." : "Generate Invoice"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
