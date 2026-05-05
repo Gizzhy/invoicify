@@ -3,7 +3,8 @@ import Providers from "../components/Providers";
 
 export const metadata = {
   title: "Invoicify | Dashboard",
-  description: "Invoice app for vendors",
+  description:
+    "Everything you need to invoice smarter—create, send, and track payments effortlessly across currencies.",
 };
 
 export default function RootLayout({ children }) {
