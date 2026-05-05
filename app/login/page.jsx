@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  ArrowRight,
+  BarChart3,
+  Eye,
+  FileText,
+  WalletCards,
+} from "lucide-react";
 import { login } from "../../services/authService";
 import styles from "./page.module.scss";
 
@@ -16,6 +23,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       await login(form.email, form.password);
       router.push("/dashboard");
@@ -27,48 +35,56 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={styles.pageWrap}>
+    <main className={styles.pageWrap}>
       <section className={styles.leftPanel}>
-        <div>
+        <div className={styles.glowOne} />
+        <div className={styles.glowTwo} />
+
+        <div className={styles.leftContent}>
           <div className={styles.brand}>
-            <div className={styles.logo}>VI</div>
-            <div className={styles.brandTitle}>VendorInvoice</div>
+            <div className={styles.logo}>
+              <WalletCards size={24} />
+            </div>
+            <span>VendorInvoice</span>
           </div>
 
           <div className={styles.featureCards}>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>📄</div>
-              <div className={styles.featureDetails}>
-                <div className={styles.featureTitle}>Invoicing</div>
-                <div className={styles.featureSubtitle}>Automated & fast</div>
+              <div className={styles.featureIcon}>
+                <FileText size={22} />
+              </div>
+              <div>
+                <h4>Invoicing</h4>
+                <p>Automated & fast</p>
               </div>
             </div>
+
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>📊</div>
-              <div className={styles.featureDetails}>
-                <div className={styles.featureTitle}>Reports</div>
-                <div className={styles.featureSubtitle}>Real-time data</div>
+              <div className={styles.featureIcon}>
+                <BarChart3 size={22} />
+              </div>
+              <div>
+                <h4>Reports</h4>
+                <p>Real-time data</p>
               </div>
             </div>
           </div>
 
-          <h1 className={styles.headline}>
-            Manage your business invoices with ease
-          </h1>
-          <p className={styles.description}>
-            Streamline your cash flow, track payments, and get paid faster with
-            our professional financial tools designed for modern vendors.
-          </p>
+          <div className={styles.heroText}>
+            <h1>Manage your business invoices with ease</h1>
+            <p>
+              Streamline your cash flow, track payments, and get paid faster
+              with professional tools built for modern vendors.
+            </p>
+          </div>
         </div>
 
         <div className={styles.leftFooter}>
-          <span>© 2024 VendorInvoice Inc.</span>
-          <Link href="/" className={styles.linkText}>
-            Privacy
-          </Link>
-          <Link href="/" className={styles.linkText}>
-            Terms
-          </Link>
+          <span>© 2026 VendorInvoice Inc.</span>
+          <div>
+            <Link href="/">Privacy</Link>
+            <Link href="/">Terms</Link>
+          </div>
         </div>
       </section>
 
@@ -79,33 +95,52 @@ export default function LoginPage() {
             <p>Please enter your details to sign in.</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>Email address</label>
               <input
                 className={styles.input}
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
+                placeholder="Email address"
+                required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>Password</label>
               <input
-                className={styles.input}
+                className={`${styles.input} ${styles.passwordInput}`}
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Enter your password"
+                placeholder="Password"
+                required
               />
+              <button
+                className={styles.eyeButton}
+                type="button"
+                aria-label="Show password"
+              >
+                <Eye size={20} />
+              </button>
+            </div>
+
+            <div className={styles.formOptions}>
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" />
+                <span>Remember me</span>
+              </label>
+
+              <Link href="/" className={styles.forgotLink}>
+                Forgot password?
+              </Link>
             </div>
 
             {error && <div className={styles.error}>{error}</div>}
 
             <button disabled={loading} className={styles.button} type="submit">
-              {loading ? "Signing in..." : "Sign in"}
+              <span>{loading ? "Signing in..." : "Sign in"}</span>
+              {!loading && <ArrowRight size={20} />}
             </button>
           </form>
 
@@ -115,6 +150,6 @@ export default function LoginPage() {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
