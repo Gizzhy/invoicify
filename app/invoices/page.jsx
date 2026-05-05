@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
-import { getInvoices } from "../../services/invoiceService";
+import {
+  getInvoices,
+  updateInvoiceStatus,
+} from "../../services/invoiceService";
+import { formatCurrency, formatDate } from "../../lib/utils";
 import AppLayout from "../../components/AppLayout";
+import styles from "./page.module.scss";
 
 export default function InvoicesPage() {
   const { user } = useAuth();
@@ -25,64 +30,107 @@ export default function InvoicesPage() {
     }
   }
 
+  async function handleStatusChange(invoiceId, newStatus) {
+    try {
+      await updateInvoiceStatus(user.uid, invoiceId, newStatus);
+      setInvoices((prev) =>
+        prev.map((inv) =>
+          inv.id === invoiceId ? { ...inv, status: newStatus } : inv,
+        ),
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  }
+
+  function getInitials(name) {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
   return (
     <AppLayout>
-      <div className="container" style={{ marginTop: "0" }}>
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles.headerText}>
             <h1>Invoices</h1>
-            <Link href="/invoices/create">
-              <button className="button">Create New Invoice</button>
-            </Link>
+            <p>Manage, track, and download your customer invoices.</p>
           </div>
-          {invoices.length === 0 ? (
-            <p>No invoices yet.</p>
-          ) : (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginTop: "1rem",
-              }}
-            >
+          <Link href="/invoices/create">
+            <button className={styles.createBtn}>Create New Invoice</button>
+          </Link>
+        </div>
+        {invoices.length === 0 ? (
+          <p>No invoices yet.</p>
+        ) : (
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
               <thead>
-                <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  <th style={{ textAlign: "left" }}>ID</th>
+                <tr>
+                  <th>Invoice ID</th>
                   <th>Client</th>
-                  <th>Total</th>
-                  <th>Date</th>
-                  <th></th>
+                  <th>Date Sent</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    style={{ borderBottom: "1px solid #e2e8f0" }}
-                  >
-                    <td>{inv.invoiceNumber}</td>
-                    <td>{inv.clientName}</td>
+                  <tr key={inv.id}>
                     <td>
-                      {inv.currency} {inv.total.toFixed(2)}
-                    </td>
-                    <td>{inv.createdAt.toDate().toLocaleDateString()}</td>
-                    <td>
-                      <Link href={`/invoices/${inv.id}`}>
-                        <button className="button">View</button>
+                      <Link
+                        href={`/invoices/${inv.id}`}
+                        className={styles.invoiceId}
+                      >
+                        {inv.invoiceNumber}
                       </Link>
+                    </td>
+                    <td>
+                      <div className={styles.clientCell}>
+                        <div className={styles.avatar}>
+                          {getInitials(inv.clientName)}
+                        </div>
+                        {inv.clientName}
+                      </div>
+                    </td>
+                    <td>{formatDate(inv.createdAt)}</td>
+                    <td className={styles.amount}>
+                      {formatCurrency(inv.total, inv.currency)}
+                    </td>
+                    <td>
+                      <span
+                        className={`${styles.statusPill} ${
+                          inv.status === "paid"
+                            ? styles.statusPaid
+                            : styles.statusPending
+                        }`}
+                      >
+                        {inv.status || "pending"}
+                      </span>
+                    </td>
+                    <td>
+                      <select
+                        className={styles.statusSelect}
+                        value={inv.status || "pending"}
+                        onChange={(e) =>
+                          handleStatusChange(inv.id, e.target.value)
+                        }
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

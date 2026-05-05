@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { formatCurrency } from "../../../lib/utils";
-import { getInvoice } from "../../../services/invoiceService";
+import { formatCurrency, formatDate } from "../../../lib/utils";
+import {
+  getInvoice,
+  updateInvoiceStatus,
+} from "../../../services/invoiceService";
 import {
   getBankAccounts,
   getVendorProfile,
 } from "../../../services/vendorService";
 import { generateInvoicePdf } from "../../../lib/generateInvoicePdf";
 import AppLayout from "../../../components/AppLayout";
-
-const currencySymbols = { NGN: "₦", GBP: "£", USD: "$", EUR: "€" };
 
 export default function InvoiceDetail() {
   const { user } = useAuth();
@@ -52,6 +53,15 @@ export default function InvoiceDetail() {
     }
   };
 
+  async function handleStatusChange(newStatus) {
+    try {
+      await updateInvoiceStatus(user.uid, params.id, newStatus);
+      setInvoice((prev) => ({ ...prev, status: newStatus }));
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  }
+
   if (!invoice)
     return (
       <AppLayout>
@@ -70,7 +80,47 @@ export default function InvoiceDetail() {
               alignItems: "center",
             }}
           >
-            <h1>Invoice {invoice.invoiceNumber}</h1>
+            <div>
+              <h1>Invoice {invoice.invoiceNumber}</h1>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "9999px",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    textTransform: "capitalize",
+                    background:
+                      invoice.status === "paid" ? "#d1fae5" : "#fef3c7",
+                    color: invoice.status === "paid" ? "#065f46" : "#d97706",
+                  }}
+                >
+                  {invoice.status || "pending"}
+                </span>
+                <select
+                  value={invoice.status || "pending"}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  style={{
+                    padding: "0.25rem 0.5rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.25rem",
+                    background: "white",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+            </div>
             <div>
               <button
                 className="button"
@@ -87,7 +137,7 @@ export default function InvoiceDetail() {
           <div style={{ marginTop: "1rem" }}>
             <p>Client: {invoice.clientName}</p>
             <p>Client Phone: {invoice.clientPhone}</p>
-            <p>Date: {invoice.createdAt.toDate().toLocaleDateString()}</p>
+            <p>Date: {formatDate(invoice.createdAt)}</p>
             <p>Currency: {invoice.currency}</p>
             {bankAccount && (
               <p>
@@ -95,10 +145,7 @@ export default function InvoiceDetail() {
                 {bankAccount.accountName})
               </p>
             )}
-            <p>
-              Total: {currencySymbols[invoice.currency]}
-              {invoice.total.toFixed(2)}
-            </p>
+            <p>Total: {formatCurrency(invoice.total, invoice.currency)}</p>
           </div>
           <table
             style={{
@@ -120,13 +167,12 @@ export default function InvoiceDetail() {
                 <tr key={idx} style={{ borderBottom: "1px solid #e2e8f0" }}>
                   <td>{item.name}</td>
                   <td>{item.quantity}</td>
+                  <td>{formatCurrency(item.price, invoice.currency)}</td>
                   <td>
-                    {currencySymbols[invoice.currency]}
-                    {item.price.toFixed(2)}
-                  </td>
-                  <td>
-                    {currencySymbols[invoice.currency]}
-                    {(item.quantity * item.price).toFixed(2)}
+                    {formatCurrency(
+                      item.quantity * item.price,
+                      invoice.currency,
+                    )}
                   </td>
                 </tr>
               ))}

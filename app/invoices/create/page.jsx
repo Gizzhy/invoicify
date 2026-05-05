@@ -7,6 +7,7 @@ import { calculateTotal, calculateRowAmount } from "../../../lib/utils";
 import { getBankAccounts } from "../../../services/vendorService";
 import { createInvoice } from "../../../services/invoiceService";
 import AppLayout from "../../../components/AppLayout";
+import { useRouter } from "next/navigation";
 
 const currencies = [
   { value: "NGN", label: "Naira (₦)" },
@@ -16,12 +17,13 @@ const currencies = [
 ];
 
 export default function CreateInvoicePage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [banks, setBanks] = useState([]);
   const [form, setForm] = useState({
     clientName: "",
     clientPhone: "",
-    currency: "USD",
+    currency: "NGN",
     bankAccountId: "",
     items: [{ name: "", quantity: 1, price: 0 }],
   });
@@ -79,10 +81,16 @@ export default function CreateInvoicePage() {
 
     setSubmitting(true);
     try {
-      const data = await createInvoice(user.uid, { ...form, total });
-      router.push(`/invoices/${data.id}`);
+      const createdInvoice = await createInvoice(user.uid, { ...form, total });
+
+      if (!createdInvoice?.id) {
+        throw new Error("Invoice created but no ID was returned");
+      }
+
+      router.push(`/invoices/${createdInvoice.id}`);
     } catch (error) {
-      setError("Failed to create invoice");
+      console.error("Create invoice error:", error);
+      setError(error.message || "Failed to create invoice");
     } finally {
       setSubmitting(false);
     }

@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { generateInvoiceNumber } from "../lib/utils";
+import { serverTimestamp } from "firebase/firestore";
 
 export const getInvoices = async (uid) => {
   try {
@@ -21,22 +22,30 @@ export const getInvoices = async (uid) => {
     });
     return invoices.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
   } catch (error) {
+    console.error(error);
     throw error;
   }
 };
 
 export const createInvoice = async (uid, data) => {
-  try {
-    const invoiceNumber = generateInvoiceNumber();
-    const docRef = await addDoc(collection(db, "users", uid, "invoices"), {
-      ...data,
-      invoiceNumber,
-      createdAt: new Date(),
-    });
-    return { id: docRef.id, invoiceNumber };
-  } catch (error) {
-    throw error;
-  }
+  const invoiceNumber = generateInvoiceNumber();
+
+  const invoiceData = {
+    ...data,
+    invoiceNumber,
+    status: "pending",
+    createdAt: serverTimestamp(),
+  };
+
+  const docRef = await addDoc(
+    collection(db, "users", uid, "invoices"),
+    invoiceData,
+  );
+
+  return {
+    id: docRef.id,
+    ...invoiceData,
+  };
 };
 
 export const getInvoice = async (uid, invoiceId) => {
@@ -49,6 +58,7 @@ export const getInvoice = async (uid, invoiceId) => {
       throw new Error("Invoice not found");
     }
   } catch (error) {
+    console.error(error);
     throw error;
   }
 };
@@ -58,14 +68,19 @@ export const updateInvoice = async (uid, invoiceId, data) => {
     const docRef = doc(db, "users", uid, "invoices", invoiceId);
     await updateDoc(docRef, data);
   } catch (error) {
+    console.error(error);
     throw error;
   }
 };
 
-export const deleteInvoice = async (uid, invoiceId) => {
+export const updateInvoiceStatus = async (uid, invoiceId, status) => {
+  if (!["pending", "paid"].includes(status)) {
+    throw new Error("Invalid status");
+  }
   try {
-    await deleteDoc(doc(db, "users", uid, "invoices", invoiceId));
+    await updateInvoice(uid, invoiceId, { status });
   } catch (error) {
+    console.error(error);
     throw error;
   }
 };
