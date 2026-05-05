@@ -2,7 +2,7 @@ import "./globals.scss";
 import Providers from "../components/Providers";
 
 export const metadata = {
-  title: "Vendor Invoice Dashboard",
+  title: "Invoicify | Dashboard",
   description: "Invoice app for vendors",
 };
 
