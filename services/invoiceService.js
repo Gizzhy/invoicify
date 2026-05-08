@@ -6,10 +6,10 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { generateInvoiceNumber } from "../lib/utils";
-import { serverTimestamp } from "firebase/firestore";
+import { generateInvoiceNumber, generateReceiptNumber } from "../lib/utils";
 
 export const getInvoices = async (uid) => {
   try {
@@ -78,7 +78,18 @@ export const updateInvoiceStatus = async (uid, invoiceId, status) => {
     throw new Error("Invalid status");
   }
   try {
-    await updateInvoice(uid, invoiceId, { status });
+    const updateData = { status };
+
+    if (status === "paid") {
+      updateData.paidAt = serverTimestamp();
+      // Get the invoice to check if it already has a receiptNumber
+      const invoice = await getInvoice(uid, invoiceId);
+      if (!invoice.receiptNumber) {
+        updateData.receiptNumber = generateReceiptNumber();
+      }
+    }
+
+    await updateInvoice(uid, invoiceId, updateData);
   } catch (error) {
     console.error(error);
     throw error;

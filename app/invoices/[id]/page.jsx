@@ -22,6 +22,7 @@ import {
   getVendorProfile,
 } from "../../../services/vendorService";
 import { generateInvoicePdf } from "../../../lib/generateInvoicePdf";
+import { generateReceiptPdf } from "../../../lib/generateReceiptPdf";
 import AppLayout from "../../../components/AppLayout";
 import styles from "./id.module.scss";
 
@@ -56,6 +57,10 @@ export default function InvoiceDetail() {
 
   function handleDownloadPdf() {
     if (invoice && profile) generateInvoicePdf(invoice, profile);
+  }
+
+  function handleDownloadReceipt() {
+    if (invoice && profile) generateReceiptPdf(invoice, profile);
   }
 
   async function handleStatusChange(newStatus) {
@@ -123,6 +128,17 @@ export default function InvoiceDetail() {
               <Download size={18} />
               Download PDF
             </button>
+
+            {status === "paid" && (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={handleDownloadReceipt}
+              >
+                <Download size={18} />
+                Download Receipt
+              </button>
+            )}
 
             <button
               type="button"

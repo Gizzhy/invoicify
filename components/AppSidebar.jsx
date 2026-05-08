@@ -11,6 +11,7 @@ import {
   LogOut,
   WalletCards,
   X,
+  ScrollText,
 } from "lucide-react";
 import styles from "./AppSidebar.module.scss";
 import icon from "../app/assets/logo.png";
@@ -18,6 +19,7 @@ import icon from "../app/assets/logo.png";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/invoices", label: "Invoices", icon: FileText },
+  { href: "/receipts", label: "Receipts", icon: ScrollText },
   { href: "/bank-accounts", label: "Bank Accounts", icon: WalletCards },
   { href: "/profile", label: "Profile", icon: User },
 ];
