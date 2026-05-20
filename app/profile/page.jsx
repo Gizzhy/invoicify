@@ -12,7 +12,7 @@ import styles from "./profile.module.scss";
 
 export default function ProfilePage() {
   const { user } = useAuth();
-
+  const BRAND_DESC_LIMIT = 120;
   const [profile, setProfile] = useState({
     brandName: "",
     brandDesc: "",
@@ -124,11 +124,15 @@ export default function ProfilePage() {
             <label>Brand Description / Tagline</label>
             <textarea
               value={profile.brandDesc}
+              maxLength={BRAND_DESC_LIMIT}
               onChange={(e) =>
                 setProfile({ ...profile, brandDesc: e.target.value })
               }
               placeholder="Short description for invoices"
             />
+            <p className={styles.charCount}>
+              {profile.brandDesc.length}/{BRAND_DESC_LIMIT}
+            </p>
           </div>
 
           <div className={styles.full}>
