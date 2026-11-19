@@ -3,17 +3,23 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 import {
+  deleteInvoice,
   getInvoices,
   updateInvoiceStatus,
 } from "../../services/invoiceService";
 import { formatCurrency, formatDate } from "../../lib/utils";
 import AppLayout from "../../components/AppLayout";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import styles from "./page.module.scss";
 
 export default function InvoicesPage() {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState([]);
+  const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -40,6 +46,26 @@ export default function InvoicesPage() {
       );
     } catch (error) {
       console.error("Error updating status:", error);
+    }
+  }
+
+  async function confirmDeleteInvoice() {
+    if (!invoiceToDelete) return;
+
+    setDeleteError("");
+    setDeleting(true);
+
+    try {
+      await deleteInvoice(user.uid, invoiceToDelete.id);
+      setInvoices((prev) =>
+        prev.filter((inv) => inv.id !== invoiceToDelete.id),
+      );
+      setInvoiceToDelete(null);
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      setDeleteError("Could not delete this invoice. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -77,6 +103,7 @@ export default function InvoicesPage() {
                   <th>Amount</th>
                   <th>Status</th>
                   <th>Action</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -125,12 +152,50 @@ export default function InvoicesPage() {
                         <option value="paid">Paid</option>
                       </select>
                     </td>
+                    <td>
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => {
+                          setInvoiceToDelete(inv);
+                          setDeleteError("");
+                        }}
+                        aria-label={`Delete invoice ${inv.invoiceNumber}`}
+                        title="Delete invoice"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+
+        <ConfirmDialog
+          open={Boolean(invoiceToDelete)}
+          title="Delete this invoice?"
+          message="The invoice will be removed from your records, and from your dashboard totals and receipts if it was marked paid."
+          itemLabel={
+            invoiceToDelete
+              ? `${invoiceToDelete.invoiceNumber} — ${invoiceToDelete.clientName} (${formatCurrency(
+                  invoiceToDelete.total,
+                  invoiceToDelete.currency,
+                )})`
+              : ""
+          }
+          warning="This action is permanent and cannot be undone."
+          confirmLabel="Delete Invoice"
+          loading={deleting}
+          error={deleteError}
+          onConfirm={confirmDeleteInvoice}
+          onCancel={() => {
+            if (deleting) return;
+            setInvoiceToDelete(null);
+            setDeleteError("");
+          }}
+        />
       </div>
     </AppLayout>
   );

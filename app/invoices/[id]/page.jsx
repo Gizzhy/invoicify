@@ -9,11 +9,13 @@ import {
   Download,
   FileText,
   Phone,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import { formatCurrency, formatDate } from "../../../lib/utils";
 import {
+  deleteInvoice,
   getInvoice,
   updateInvoiceStatus,
 } from "../../../services/invoiceService";
@@ -24,6 +26,7 @@ import {
 import { generateInvoicePdf } from "../../../lib/generateInvoicePdf";
 import { generateReceiptPdf } from "../../../lib/generateReceiptPdf";
 import AppLayout from "../../../components/AppLayout";
+import ConfirmDialog from "../../../components/ConfirmDialog";
 import styles from "./id.module.scss";
 
 export default function InvoiceDetail() {
@@ -34,6 +37,9 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (user && params.id) fetchInvoice();
@@ -61,6 +67,20 @@ export default function InvoiceDetail() {
 
   function handleDownloadReceipt() {
     if (invoice && profile) generateReceiptPdf(invoice, profile);
+  }
+
+  async function confirmDeleteInvoice() {
+    setDeleteError("");
+    setDeleting(true);
+
+    try {
+      await deleteInvoice(user.uid, params.id);
+      router.push("/invoices");
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      setDeleteError("Could not delete this invoice. Please try again.");
+      setDeleting(false);
+    }
   }
 
   async function handleStatusChange(newStatus) {
@@ -139,6 +159,18 @@ export default function InvoiceDetail() {
                 Download Receipt
               </button>
             )}
+
+            <button
+              type="button"
+              className={styles.dangerButton}
+              onClick={() => {
+                setDeleteError("");
+                setConfirmOpen(true);
+              }}
+            >
+              <Trash2 size={18} />
+              Delete
+            </button>
 
             <button
               type="button"
@@ -258,6 +290,26 @@ export default function InvoiceDetail() {
             </div>
           </aside>
         </section>
+
+        <ConfirmDialog
+          open={confirmOpen}
+          title="Delete this invoice?"
+          message="The invoice will be removed from your records, and from your dashboard totals and receipts if it was marked paid."
+          itemLabel={`${invoice.invoiceNumber} — ${invoice.clientName} (${formatCurrency(
+            invoice.total,
+            invoice.currency,
+          )})`}
+          warning="This action is permanent and cannot be undone."
+          confirmLabel="Delete Invoice"
+          loading={deleting}
+          error={deleteError}
+          onConfirm={confirmDeleteInvoice}
+          onCancel={() => {
+            if (deleting) return;
+            setConfirmOpen(false);
+            setDeleteError("");
+          }}
+        />
       </main>
     </AppLayout>
   );

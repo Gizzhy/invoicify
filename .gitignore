@@ -5,3 +5,4 @@ out
 .env.local
 dev.db
 .prisma
+.DS_Store

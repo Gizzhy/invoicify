@@ -73,6 +73,15 @@ export const updateInvoice = async (uid, invoiceId, data) => {
   }
 };
 
+export const deleteInvoice = async (uid, invoiceId) => {
+  try {
+    await deleteDoc(doc(db, "users", uid, "invoices", invoiceId));
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const updateInvoiceStatus = async (uid, invoiceId, status) => {
   if (!["pending", "paid"].includes(status)) {
     throw new Error("Invalid status");

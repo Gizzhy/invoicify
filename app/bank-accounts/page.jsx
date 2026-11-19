@@ -10,10 +10,16 @@ import {
   ChevronDown,
   Lock,
   WalletCards,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { addBankAccount, getBankAccounts } from "../../services/vendorService";
+import {
+  addBankAccount,
+  deleteBankAccount,
+  getBankAccounts,
+} from "../../services/vendorService";
 import AppLayout from "../../components/AppLayout";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import styles from "./bank.module.scss";
 
 const NIGERIAN_BANKS = [
@@ -53,6 +59,9 @@ export default function BankAccountsPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (user?.uid) fetchAccounts();
@@ -90,6 +99,26 @@ export default function BankAccountsPage() {
       setError("Could not add bank account");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function confirmDeleteAccount() {
+    if (!accountToDelete) return;
+
+    setDeleteError("");
+    setDeleting(true);
+
+    try {
+      await deleteBankAccount(user.uid, accountToDelete.id);
+      setAccounts((prev) =>
+        prev.filter((acc) => acc.id !== accountToDelete.id),
+      );
+      setAccountToDelete(null);
+    } catch (error) {
+      console.error("Error deleting bank account:", error);
+      setDeleteError("Could not delete this bank account. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -144,6 +173,19 @@ export default function BankAccountsPage() {
                   <div className={styles.bankIcon}>
                     <Landmark size={28} />
                   </div>
+
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    onClick={() => {
+                      setAccountToDelete(acc);
+                      setDeleteError("");
+                    }}
+                    aria-label={`Delete ${acc.bankName} account`}
+                    title="Delete account"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
 
                 <div className={styles.cardBody}>
@@ -272,6 +314,29 @@ export default function BankAccountsPage() {
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={Boolean(accountToDelete)}
+          title="Delete this bank account?"
+          message="It will be removed from your payout accounts and will no longer be available when creating new invoices."
+          itemLabel={
+            accountToDelete
+              ? `${accountToDelete.bankName} — ${accountToDelete.accountName} (${maskAccountNumber(
+                  accountToDelete.accountNumber,
+                )})`
+              : ""
+          }
+          warning="This action is permanent and cannot be undone."
+          confirmLabel="Delete Account"
+          loading={deleting}
+          error={deleteError}
+          onConfirm={confirmDeleteAccount}
+          onCancel={() => {
+            if (deleting) return;
+            setAccountToDelete(null);
+            setDeleteError("");
+          }}
+        />
       </main>
     </AppLayout>
   );

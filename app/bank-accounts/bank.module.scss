@@ -90,6 +90,26 @@
   color: #94a3b8;
 }
 
+.deleteButton {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.65rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #f1d5d5;
+  background: #fff5f5;
+  color: #dc2626;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+}
+
 .cardBody {
   h3 {
     margin: 0 0 0.65rem;

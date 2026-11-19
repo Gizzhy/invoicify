@@ -108,7 +108,8 @@
 }
 
 .primaryButton,
-.secondaryButton {
+.secondaryButton,
+.dangerButton {
   height: 3rem;
   border-radius: 0.75rem;
   padding: 0 1rem;
@@ -130,6 +131,23 @@
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #64748b;
+}
+
+.dangerButton {
+  border: 1px solid #fca5a5;
+  background: #fff5f5;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+  }
 }
 
 .summaryGrid {
@@ -339,7 +357,8 @@
   }
 
   .primaryButton,
-  .secondaryButton {
+  .secondaryButton,
+  .dangerButton {
     width: 100%;
     justify-content: center;
   }
