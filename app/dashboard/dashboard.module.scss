@@ -125,6 +125,21 @@
   font-size: 1rem;
 }
 
+.loadingValue {
+  display: block;
+  color: #cbd5e1;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.loadingState {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
 .recentHeader {
   display: flex;
   justify-content: space-between;

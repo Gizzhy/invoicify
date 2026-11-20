@@ -150,6 +150,17 @@
   }
 }
 
+.loadingState {
+  min-height: 14rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
 .emptyState {
   min-height: 24rem;
   border: 1px dashed #cbd5e1;

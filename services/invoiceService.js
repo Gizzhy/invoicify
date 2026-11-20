@@ -6,21 +6,43 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   serverTimestamp,
+  query,
+  orderBy,
+  limit,
+  startAfter,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { generateInvoiceNumber, generateReceiptNumber } from "../lib/utils";
 
-export const getInvoices = async (uid) => {
+// Newest first, ordered by Firestore rather than in the browser. Pass
+// `limitCount` to fetch a single page, and `startAfterValue` (the last
+// invoice's createdAt) to fetch the page after it.
+export const getInvoices = async (uid, options = {}) => {
+  const { limitCount, startAfterValue } = options;
+
   try {
+    const constraints = [orderBy("createdAt", "desc")];
+
+    if (startAfterValue) {
+      constraints.push(startAfter(startAfterValue));
+    }
+
+    if (limitCount) {
+      constraints.push(limit(limitCount));
+    }
+
     const querySnapshot = await getDocs(
-      collection(db, "users", uid, "invoices"),
+      query(collection(db, "users", uid, "invoices"), ...constraints),
     );
+
     const invoices = [];
     querySnapshot.forEach((doc) => {
       invoices.push({ id: doc.id, ...doc.data() });
     });
-    return invoices.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+
+    return invoices;
   } catch (error) {
     console.error(error);
     throw error;
@@ -96,6 +118,12 @@ export const updateInvoiceStatus = async (uid, invoiceId, status) => {
       if (!invoice.receiptNumber) {
         updateData.receiptNumber = generateReceiptNumber();
       }
+    } else {
+      // Back to pending means the payment was not actually received, so the
+      // receipt it produced is withdrawn with it. Marking it paid again
+      // mints a fresh receipt number.
+      updateData.paidAt = deleteField();
+      updateData.receiptNumber = deleteField();
     }
 
     await updateInvoice(uid, invoiceId, updateData);

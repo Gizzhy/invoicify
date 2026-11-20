@@ -20,6 +20,7 @@ export default function ReceiptsPage() {
   const [profile, setProfile] = useState(null);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -28,20 +29,26 @@ export default function ReceiptsPage() {
   }, [user]);
 
   async function fetchData() {
+    setLoading(true);
+
     try {
-      const invoices = await getInvoices(user.uid);
-      const paidInvoices = invoices.filter(
-        (inv) => (inv.status || "pending") === "paid",
+      // The receipt list is what matters here; the profile and bank
+      // details only affect the downloaded PDF.
+      const [invoices, prof, banks] = await Promise.all([
+        getInvoices(user.uid),
+        getVendorProfile(user.uid).catch(() => null),
+        getBankAccounts(user.uid).catch(() => []),
+      ]);
+
+      setReceipts(
+        invoices.filter((inv) => (inv.status || "pending") === "paid"),
       );
-      setReceipts(paidInvoices);
-
-      const prof = await getVendorProfile(user.uid);
       setProfile(prof);
-
-      const banks = await getBankAccounts(user.uid);
       setBankAccounts(banks);
     } catch (error) {
       console.error("Error fetching receipts:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -79,12 +86,7 @@ export default function ReceiptsPage() {
   }
 
   function getPaidDate(receipt) {
-    if (receipt.paidAt) {
-      return receipt.paidAt.toDate
-        ? receipt.paidAt.toDate().toLocaleDateString()
-        : new Date(receipt.paidAt).toLocaleDateString();
-    }
-    return formatDate(receipt.createdAt);
+    return formatDate(receipt.paidAt || receipt.createdAt);
   }
 
   return (
@@ -97,7 +99,9 @@ export default function ReceiptsPage() {
           </div>
         </div>
 
-        {receipts.length === 0 ? (
+        {loading ? (
+          <div className={styles.loadingState}>Loading receipts...</div>
+        ) : receipts.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyContent}>
               <h2>No receipts yet</h2>

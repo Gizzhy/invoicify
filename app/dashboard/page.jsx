@@ -21,20 +21,27 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) fetchDashboardData();
   }, [user]);
 
   async function fetchDashboardData() {
+    setLoading(true);
+
     try {
-      const invoicesData = await getInvoices(user.uid);
-      const accountsData = await getBankAccounts(user.uid);
+      const [invoicesData, accountsData] = await Promise.all([
+        getInvoices(user.uid),
+        getBankAccounts(user.uid),
+      ]);
 
       setInvoices(invoicesData);
       setAccounts(accountsData);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -45,10 +52,12 @@ export default function DashboardPage() {
     invoices.forEach((invoice) => {
       const currency = invoice.currency || "NGN";
       const total = Number(invoice.total || 0);
+      const status = invoice.status || "pending";
 
-      revenue[currency] = (revenue[currency] || 0) + total;
-
-      if ((invoice.status || "pending") === "pending") {
+      // Revenue is money actually collected, so only paid invoices count.
+      if (status === "paid") {
+        revenue[currency] = (revenue[currency] || 0) + total;
+      } else {
         pending[currency] = (pending[currency] || 0) + total;
       }
     });
@@ -68,6 +77,10 @@ export default function DashboardPage() {
   }
 
   function renderMoneyList(data) {
+    if (loading) {
+      return <strong className={styles.loadingValue}>&mdash;</strong>;
+    }
+
     const entries = Object.entries(data);
 
     if (entries.length === 0) {
@@ -105,7 +118,7 @@ export default function DashboardPage() {
                 <Banknote size={24} />
               </div>
             </div>
-            <span>Total Revenue</span>
+            <span>Total Revenue (Paid)</span>
             {renderMoneyList(groupedTotals.revenue)}
           </article>
 
@@ -116,7 +129,11 @@ export default function DashboardPage() {
               </div>
             </div>
             <span>Total Invoices Sent</span>
-            <strong className={styles.bigNumber}>{invoices.length}</strong>
+            {loading ? (
+              <strong className={styles.loadingValue}>&mdash;</strong>
+            ) : (
+              <strong className={styles.bigNumber}>{invoices.length}</strong>
+            )}
           </article>
 
           <article className={styles.statCard}>
@@ -136,7 +153,11 @@ export default function DashboardPage() {
               </div>
             </div>
             <span>Bank Accounts</span>
-            <strong className={styles.bigNumber}>{accounts.length}</strong>
+            {loading ? (
+              <strong className={styles.loadingValue}>&mdash;</strong>
+            ) : (
+              <strong className={styles.bigNumber}>{accounts.length}</strong>
+            )}
           </article>
         </section>
 
@@ -146,7 +167,9 @@ export default function DashboardPage() {
         </section>
 
         <section className={styles.tableCard}>
-          {recentInvoices.length === 0 ? (
+          {loading ? (
+            <div className={styles.loadingState}>Loading invoices...</div>
+          ) : recentInvoices.length === 0 ? (
             <div className={styles.emptyState}>
               <FileText size={34} />
               <h3>No invoices yet</h3>

@@ -14,9 +14,14 @@ import AppLayout from "../../components/AppLayout";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import styles from "./page.module.scss";
 
+const PAGE_SIZE = 25;
+
 export default function InvoicesPage() {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -28,11 +33,40 @@ export default function InvoicesPage() {
   }, [user]);
 
   async function fetchInvoices() {
+    setLoading(true);
+
     try {
-      const data = await getInvoices(user.uid);
+      const data = await getInvoices(user.uid, { limitCount: PAGE_SIZE });
       setInvoices(data);
+      setHasMore(data.length === PAGE_SIZE);
     } catch (error) {
       console.error("Error fetching invoices:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadMore() {
+    const last = invoices[invoices.length - 1];
+    if (!last?.createdAt) {
+      setHasMore(false);
+      return;
+    }
+
+    setLoadingMore(true);
+
+    try {
+      const data = await getInvoices(user.uid, {
+        limitCount: PAGE_SIZE,
+        startAfterValue: last.createdAt,
+      });
+
+      setInvoices((prev) => [...prev, ...data]);
+      setHasMore(data.length === PAGE_SIZE);
+    } catch (error) {
+      console.error("Error loading more invoices:", error);
+    } finally {
+      setLoadingMore(false);
     }
   }
 
@@ -90,7 +124,9 @@ export default function InvoicesPage() {
             <button className={styles.createBtn}>Create New Invoice</button>
           </Link>
         </div>
-        {invoices.length === 0 ? (
+        {loading ? (
+          <div className={styles.loadingState}>Loading invoices...</div>
+        ) : invoices.length === 0 ? (
           <p>No invoices yet.</p>
         ) : (
           <div className={styles.tableContainer}>
@@ -170,6 +206,19 @@ export default function InvoicesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!loading && hasMore && (
+          <div className={styles.loadMoreWrap}>
+            <button
+              type="button"
+              className={styles.loadMoreBtn}
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Loading..." : "Load More"}
+            </button>
           </div>
         )}
 

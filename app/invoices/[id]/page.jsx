@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowLeft,
   Banknote,
+  Pencil,
   CalendarDays,
   Download,
   FileText,
@@ -37,6 +39,7 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState(null);
   const [bankAccount, setBankAccount] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [loadError, setLoadError] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -46,18 +49,32 @@ export default function InvoiceDetail() {
   }, [user, params.id]);
 
   async function fetchInvoice() {
+    setLoadError("");
+
     try {
+      // Only the invoice itself is critical: a missing bank account or
+      // profile should still render the invoice rather than an error.
       const inv = await getInvoice(user.uid, params.id);
-      const banks = await getBankAccounts(user.uid);
+
+      const [banks, prof] = await Promise.all([
+        getBankAccounts(user.uid).catch(() => []),
+        getVendorProfile(user.uid).catch(() => null),
+      ]);
+
       const bank = banks.find(
         (b) => b.id === inv.bankAccountId || b.id === inv.selectedBankAccount,
       );
 
       setBankAccount(bank);
       setInvoice({ ...inv, bankAccount: bank });
-      setProfile(await getVendorProfile(user.uid));
+      setProfile(prof);
     } catch (error) {
       console.error("Error fetching invoice:", error);
+      setLoadError(
+        error?.message === "Invoice not found"
+          ? "We couldn't find this invoice. It may have been deleted."
+          : "We couldn't load this invoice. Please check your connection and try again.",
+      );
     }
   }
 
@@ -92,6 +109,39 @@ export default function InvoiceDetail() {
     }
   }
 
+  if (loadError) {
+    return (
+      <AppLayout>
+        <div className={styles.errorState}>
+          <div className={styles.errorIcon}>
+            <AlertTriangle size={26} />
+          </div>
+
+          <h2>Invoice unavailable</h2>
+          <p>{loadError}</p>
+
+          <div className={styles.errorActions}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={fetchInvoice}
+            >
+              Try Again
+            </button>
+
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => router.push("/invoices")}
+            >
+              Back to invoices
+            </button>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   if (!invoice) {
     return (
       <AppLayout>
@@ -101,6 +151,7 @@ export default function InvoiceDetail() {
   }
 
   const status = invoice.status || "pending";
+  const items = Array.isArray(invoice.items) ? invoice.items : [];
 
   return (
     <AppLayout>
@@ -157,6 +208,17 @@ export default function InvoiceDetail() {
               >
                 <Download size={18} />
                 Download Receipt
+              </button>
+            )}
+
+            {status === "pending" && (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => router.push(`/invoices/${params.id}/edit`)}
+              >
+                <Pencil size={18} />
+                Edit
               </button>
             )}
 
@@ -220,7 +282,7 @@ export default function InvoiceDetail() {
           <div className={styles.tableCard}>
             <div className={styles.sectionHeader}>
               <h2>Order Items</h2>
-              <p>{invoice.items?.length || 0} item(s)</p>
+              <p>{items.length} item(s)</p>
             </div>
 
             <div className={styles.tableWrap}>
@@ -234,19 +296,27 @@ export default function InvoiceDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td>{item.name}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatCurrency(item.price, invoice.currency)}</td>
-                      <td>
-                        {formatCurrency(
-                          item.quantity * item.price,
-                          invoice.currency,
-                        )}
+                  {items.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className={styles.noItems}>
+                        This invoice has no items.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    items.map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{item.name}</td>
+                        <td>{item.quantity}</td>
+                        <td>{formatCurrency(item.price, invoice.currency)}</td>
+                        <td>
+                          {formatCurrency(
+                            item.quantity * item.price,
+                            invoice.currency,
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

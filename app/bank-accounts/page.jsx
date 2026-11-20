@@ -59,6 +59,7 @@ export default function BankAccountsPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [accountToDelete, setAccountToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -68,11 +69,15 @@ export default function BankAccountsPage() {
   }, [user]);
 
   async function fetchAccounts() {
+    setLoading(true);
+
     try {
       const data = await getBankAccounts(user.uid);
       setAccounts(data);
     } catch (error) {
       console.error("Error fetching bank accounts:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -149,7 +154,11 @@ export default function BankAccountsPage() {
           </button>
         </div>
 
-        {accounts.length === 0 ? (
+        {loading ? (
+          <section className={styles.loadingState}>
+            Loading bank accounts...
+          </section>
+        ) : accounts.length === 0 ? (
           <section className={styles.emptyState}>
             <div className={styles.emptyIcon}>
               <WalletCards size={34} />
